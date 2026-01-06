@@ -98,6 +98,11 @@
                     </button>
                 </li>
                 <li>
+                    <button onclick="router('procedures2')" id="nav-procedures2" class="w-full text-left px-6 py-3 hover:bg-stone-800 hover:text-white transition-colors border-l-4 border-transparent">
+                        📁 Manual de Protocolos
+                    </button>
+                </li>
+                <li>
                     <button onclick="router('analytics')" id="nav-analytics" class="w-full text-left px-6 py-3 hover:bg-stone-800 hover:text-white transition-colors border-l-4 border-transparent">
                         📈 Análisis de Impacto
                     </button>
@@ -130,6 +135,7 @@
         <div id="mobile-menu" class="hidden absolute top-14 left-0 w-full bg-stone-800 text-stone-200 z-40 border-b border-stone-700 shadow-xl">
             <button onclick="router('dashboard'); toggleMobileMenu()" class="block w-full text-left px-6 py-4 border-b border-stone-700">Panel de Control</button>
             <button onclick="router('procedures'); toggleMobileMenu()" class="block w-full text-left px-6 py-4 border-b border-stone-700">Protocolos</button>
+             <button onclick="router('procedures2'); toggleMobileMenu()" class="block w-full text-left px-6 py-4 border-b border-stone-700">Protocolos V2</button>
             <button onclick="router('analytics'); toggleMobileMenu()" class="block w-full text-left px-6 py-4">Análisis</button>
         </div>
 
@@ -213,6 +219,27 @@
                 <!-- Grid of Cards -->
                 <div id="procedures-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Javascript will populate this -->
+                </div>
+            </section>
+
+            <section id="view-procedures2" class="hidden max-w-5xl mx-auto fade-in">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-serif text-stone-900">Manual de Protocolos v2</h2>
+                    <div class="mt-4 flex flex-wrap gap-4">
+                        <input type="text" id="search-bar" onkeyup="renderProcedures2()" placeholder="Buscar por palabra clave (dolor, luz, error...)" class="flex-1 min-w-[200px] border border-stone-300 p-2 text-sm rounded">
+                        <select id="category-filter" onchange="renderProcedures2()" class="border border-stone-300 p-2 text-sm rounded bg-white">
+                            <option value="all">Todos los Departamentos</option>
+                            <option value="RRHH">Gestión de Talento (RRHH)</option>
+                            <option value="Operaciones">Operaciones y Logística</option>
+                            <option value="Legal">Legal y Contratos</option>
+                            <option value="Estrategia">Estrategia de Mercado</option>
+                            <option value="Salud">Salud y Riesgos Químicos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="procedures2-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Populated by JS -->
                 </div>
             </section>
 
@@ -311,6 +338,24 @@
             { id: 508, cat: "V. La Zona Sucia", sub: "Tiempo", corp: "Existe una fricción bidireccional entre la gestión del calendario laboral y el desgaste biológico del recurso.", orig: "Yo trato de matar el tiempo, y entre tanto lo que el tiempo intentará es matarme a mí." }
         ];
 
+
+         const db = [
+            { id: 1, cat: "Operaciones", corp: "Optimización de activos inmobiliarios bajo cielo gris.", orig: "Este suelo es mi lecho, y mi techo es el cielo gris que aún pretende oscurecer." },
+            { id: 2, cat: "Estrategia", corp: "Detectamos una degradación acelerada de activos positivos ante exposición solar.", orig: "Las buenas cosas mueren bajo el sol." },
+            { id: 3, cat: "RRHH", corp: "Reestructuración de marca personal mediante cese temporal.", orig: "Probaré a ser otra persona, probaré a morir un poco y volveré." },
+            { id: 4, cat: "Salud", corp: "El aislamiento no se mitiga mediante incentivos químicos de alta gama.", orig: "La más pura soledad no se cura con champán y cocaína." },
+            { id: 5, cat: "Legal", corp: "Se advierte sobre la presencia de elementos punzantes en mobiliario.", orig: "Y no olvides que al despertar siempre hay cuchillos en el cajón." },
+            { id: 6, cat: "Estrategia", corp: "La hoja de ruta se limita estrictamente a la supervivencia.", orig: "Tracé un ambicioso plan, consistía en sobrevivir." },
+            { id: 7, cat: "RRHH", corp: "Cultura de tolerancia al error extremo (x10,000).", orig: "Fracasé una vez, fracasé diez mil y aún así alzo mi copa hacia el cielo." },
+            { id: 9, cat: "Salud", corp: "Entre el cese total y el mantenimiento del malestar, optamos por lo segundo.", orig: "Entre el dolor y la nada elegí el dolor." },
+            { id: 10, cat: "RRHH", corp: "Protocolo de mantenimiento básico y detección de anomalías lumbares.", orig: "Yo te limpié, yo te di de comer, yo descubrí esa línea en tu espalda." },
+            { id: 11, cat: "Operaciones", corp: "Gestión térmica: protocolos de combustión y extinción.", orig: "Y si hay un fuego aprenderé a arder. Y si empiezo a arder, aprenderé a apagarme." },
+            { id: 12, cat: "Estrategia", corp: "Identificación de fuentes lumínicas residuales tras el ocaso.", orig: "Y tuve que entender que aún hay otra luz que queda cuando en mí se pone el sol." },
+            { id: 15, cat: "Legal", corp: "Disponibilidad de alma sujeta a ventana operativa de 90 minutos.", orig: "Tres horas tengo de vida y hora y media ya van dadas... para disponer de mi alma." },
+            { id: 18, cat: "Estrategia", corp: "Validación de modelos teóricos (incluido comunismo) en laboratorio.", orig: "Yo estoy de acuerdo contigo, en teoría, pero en teoría funciona incluso el comunismo." },
+            { id: 24, cat: "Salud", corp: "Metodología de flotación de problemas en soluciones hidro-alcohólicas.", orig: "Quise ahogar mis penas pero ellas nadaban en alcohol… como Mark Spitz." }
+        ];
+
         // --- APP STATE ---
         const state = {
             currentView: 'dashboard',
@@ -322,7 +367,7 @@
             state.currentView = viewName;
             
             // Hide all views
-            ['dashboard', 'procedures', 'analytics'].forEach(v => {
+            ['dashboard', 'procedures', 'procedures2', 'analytics'].forEach(v => {
                 document.getElementById(`view-${v}`).classList.add('hidden');
             });
             
@@ -345,6 +390,9 @@
                 renderProcedures();
             } else if (viewName === 'analytics') {
                 renderCharts();
+            }
+            else if (viewName === 'procedures2') {
+                renderProcedures2();
             }
         }
 
@@ -520,6 +568,45 @@
             });
         }
 
+        function renderProcedures2() {
+            const grid = document.getElementById('procedures2-grid');
+            const search = document.getElementById('search-bar').value.toLowerCase();
+            const filter = document.getElementById('category-filter').value;
+            grid.innerHTML = '';
+
+            const filtered = db.filter(item => {
+                const matchesSearch = item.corp.toLowerCase().includes(search) || item.orig.toLowerCase().includes(search);
+                const matchesFilter = filter === 'all' || item.cat === filter;
+                return matchesSearch && matchesFilter;
+            });
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white border border-stone-200 p-5 rounded hover:shadow-md transition-shadow cursor-pointer relative group overflow-hidden fade-in";
+                card.onclick = () => {
+                    const reality = card.querySelector('.reality-layer');
+                    reality.classList.toggle('opacity-0');
+                    reality.classList.toggle('pointer-events-none');
+                };
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">${item.cat}</span>
+                        <span class="text-[10px] text-stone-300">#P2-${item.id}</span>
+                    </div>
+                    <p class="text-sm font-medium text-stone-700 leading-snug">"${item.corp}"</p>
+                    <div class="mt-4 flex items-center gap-1 text-[10px] text-stone-400 italic">
+                        <span>Click para auditar capa de realidad</span>
+                    </div>
+                    <div class="reality-layer absolute inset-0 bg-slate-900 text-slate-100 p-5 flex flex-col justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+                        <p class="text-xs uppercase tracking-widest text-red-500 mb-2 font-bold">REVELACIÓN DE DATOS</p>
+                        <p class="font-serif italic text-sm">"${item.orig}"</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+        
         // --- INIT ---
         window.onload = function() {
             // Default view

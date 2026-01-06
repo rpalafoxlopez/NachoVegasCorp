@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nacho Vegas Corp. | Portal del Empleado</title>
+    <title>Vegas Corp. | Portal de Gestión de Contingencias</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Custom Scrollbar for a cleaner look */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
+            height: 8px;
         }
         ::-webkit-scrollbar-track {
             background: #f5f5f4; 
@@ -21,565 +22,509 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #a8a29e; 
         }
+
+        /* Chart Container Strict Styling */
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            height: 350px; /* Mobile height */
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-wrapper {
+                height: 400px; /* Desktop height */
+            }
+        }
+
+        /* Animations */
         .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
+            animation: fadeIn 0.4s ease-out forwards;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px; /* Max width constraint */
-            margin-left: auto;
-            margin-right: auto;
-            height: 350px;
-            max-height: 400px;
+
+        .flip-card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-active .flip-card-inner {
+            transform: rotateY(180deg);
         }
     </style>
-    <!-- Chosen Palette: Warm Neutrals (Stone/Warm Gray/Taupe) to evoke a sterile but "calm" corporate environment, contrasting with the dark lyrics. -->
-    <!-- Application Structure Plan: 
-         1. Dashboard Layout: Mimics a corporate intranet (Sidebar nav, Header, Main Content).
-         2. Section 1: "KPIs de Desencanto" (Key Performance Indicators) - Satirical metrics.
-         3. Section 2: "Traductor de Realidad" (The Core) - Interactive cards displaying the 9 euphemisms. Users toggle a "Reality Filter" to reveal the lyric and context. This encourages active exploration of the duality.
-         4. Section 3: "Análisis de Disociación" (Visualization) - A chart comparing the "Corporate Complexity" vs. "Emotional Rawness" of the phrases.
-         5. Rationale: The dashboard format fits the source material's satire perfectly. It turns the "Corporate Dictionary" into a tool that looks professional but feels devastating.
+    <!-- Chosen Palette: Corporate Neutral (Stone/Warm Grey). 
+         Background: bg-stone-50. Text: text-stone-800. Accents: text-stone-500 (subtle), blue-600 (links/actions), red-700 (alerts).
+         This palette evokes a sterile, bureaucracy-heavy environment. 
     -->
+
+    <!-- Application Structure Plan:
+         1. Layout: Sidebar (desktop) / Drawer (mobile) navigation mimicking an intranet. Main content area for dynamic views.
+         2. Dashboard View: "Executive Summary" showing fake KPIs of emotional despair disguised as productivity metrics.
+         3. Procedures View: The core interactive list. Grouped by "Fiscal Era" (Albums). Users see the Corporate Euphemism card. Interaction: "Audit" button flips card to reveal the "Legacy Data" (Original Lyric).
+         4. Analytics View: Visualizes the distribution of procedures across categories (Infrastructure, Operations, Leadership, etc.) using Chart.js.
+         5. Rationale: This structure satirizes corporate tools like Jira/Confluence/Tableau, making the contrast between the UI and the depressing content starker.
+    -->
+
     <!-- Visualization & Content Choices:
-         1. Interactive Cards: Goal -> Inform & Compare. Method -> HTML/Tailwind Grid with JS state toggle. Interaction -> Click "Decodificar" to flip from Euphemism to Lyric. Justification -> Forces the user to physically acknowledge the translation.
-         2. "Dissociation Index" Chart: Goal -> Analyze. Method -> Chart.js Radar Chart. Interaction -> Hover for details. Justification -> Visually represents the gap between what is said (Corporate) and what is felt (Lyric).
-         3. Tickers: Goal -> Atmosphere. Method -> Static HTML numbers. Justification -> Sets the mood immediately.
-         4. CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All icons are unicode or CSS shapes.
+         1. "Audit" Cards: Goal -> Compare/Inform. Method -> CSS Flip or JS Toggle. Interaction -> User actively "investigates" the euphemism to find the truth. Justification -> Gamifies the discovery of the lyrics.
+         2. Bar Chart (Procedural Volume): Goal -> Compare. Method -> Chart.js Bar. Shows which "Department" (Album category) has the most protocols.
+         3. Doughnut Chart (Operational Focus): Goal -> Inform. Method -> Chart.js Doughnut. Shows the split of euphemism types (HR vs Strategy vs Ops).
+         4. CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. Standard Chart.js only.
     -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 </head>
-<body class="bg-stone-50 text-stone-800 font-sans antialiased h-screen flex overflow-hidden">
+<body class="bg-stone-100 text-stone-800 font-sans h-screen flex overflow-hidden">
 
     <!-- Sidebar Navigation -->
-    <aside class="w-64 bg-stone-200 hidden md:flex flex-col border-r border-stone-300">
-        <div class="p-6 border-b border-stone-300">
-            <h1 class="text-2xl font-bold tracking-tight text-stone-700">NV Corp.</h1>
-            <p class="text-xs text-stone-500 mt-1 uppercase tracking-widest">Gestión del Desencanto</p>
+    <aside class="w-64 bg-stone-900 text-stone-300 flex-col hidden md:flex shadow-xl z-20">
+        <div class="p-6 bg-stone-950 border-b border-stone-800">
+            <h1 class="text-xl font-bold tracking-tight text-white">VEGAS CORP.<span class="text-red-500">_</span></h1>
+            <p class="text-xs text-stone-500 uppercase mt-1 tracking-widest">Sistemas de Gestión</p>
         </div>
-        <nav class="flex-1 p-4 space-y-2">
-            <button onclick="navigateTo('dashboard')" id="nav-dashboard" class="nav-item w-full text-left px-4 py-3 rounded-lg bg-white shadow-sm text-stone-800 font-medium transition hover:bg-white hover:shadow-md">
-                📊 Dashboard General
-            </button>
-            <button onclick="navigateTo('translator')" id="nav-translator" class="nav-item w-full text-left px-4 py-3 rounded-lg text-stone-600 hover:bg-stone-100 transition">
-                🗣️ Diccionario Corporativo
-            </button>
-            <button onclick="navigateTo('analytics')" id="nav-analytics" class="nav-item w-full text-left px-4 py-3 rounded-lg text-stone-600 hover:bg-stone-100 transition">
-                📉 Métricas de Disociación
-            </button>
+        
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li>
+                    <button onclick="router('dashboard')" id="nav-dashboard" class="w-full text-left px-6 py-3 hover:bg-stone-800 hover:text-white transition-colors border-l-4 border-transparent active-nav">
+                        📊 Panel de Control
+                    </button>
+                </li>
+                <li>
+                    <button onclick="router('procedures')" id="nav-procedures" class="w-full text-left px-6 py-3 hover:bg-stone-800 hover:text-white transition-colors border-l-4 border-transparent">
+                        📁 Manual de Protocolos
+                    </button>
+                </li>
+                <li>
+                    <button onclick="router('analytics')" id="nav-analytics" class="w-full text-left px-6 py-3 hover:bg-stone-800 hover:text-white transition-colors border-l-4 border-transparent">
+                        📈 Análisis de Impacto
+                    </button>
+                </li>
+            </ul>
         </nav>
-        <div class="p-4 border-t border-stone-300">
-            <div class="text-xs text-stone-500 text-center">
-                &copy; 2024 Nacho Vegas Corp.<br>
-                "Aceptación de Pérdidas"
+
+        <div class="p-4 bg-stone-950 border-t border-stone-800 text-xs text-stone-500">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span>Sistema Operativo</span>
             </div>
+            <p>Usuario: Recurso #409</p>
+            <p>Estado: Desgaste Moderado</p>
         </div>
     </aside>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 flex flex-col h-full relative">
         
         <!-- Mobile Header -->
-        <header class="md:hidden bg-stone-200 p-4 flex justify-between items-center border-b border-stone-300">
-            <span class="font-bold text-stone-700">NV Corp.</span>
-            <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="text-stone-600 border border-stone-400 px-2 rounded">☰</button>
+        <header class="md:hidden bg-stone-900 text-white p-4 flex justify-between items-center shadow-md z-30">
+            <span class="font-bold tracking-wider">VEGAS CORP.</span>
+            <button onclick="toggleMobileMenu()" class="text-stone-300 focus:outline-none">
+                ☰ Menú
+            </button>
         </header>
-        <div id="mobile-menu" class="hidden md:hidden absolute top-14 left-0 w-full bg-stone-100 z-50 border-b border-stone-300 shadow-lg">
-            <button onclick="navigateTo('dashboard')" class="block w-full text-left px-6 py-3 border-b border-stone-200">Dashboard</button>
-            <button onclick="navigateTo('translator')" class="block w-full text-left px-6 py-3 border-b border-stone-200">Diccionario</button>
-            <button onclick="navigateTo('analytics')" class="block w-full text-left px-6 py-3">Métricas</button>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="hidden absolute top-14 left-0 w-full bg-stone-800 text-stone-200 z-40 border-b border-stone-700 shadow-xl">
+            <button onclick="router('dashboard'); toggleMobileMenu()" class="block w-full text-left px-6 py-4 border-b border-stone-700">Panel de Control</button>
+            <button onclick="router('procedures'); toggleMobileMenu()" class="block w-full text-left px-6 py-4 border-b border-stone-700">Protocolos</button>
+            <button onclick="router('analytics'); toggleMobileMenu()" class="block w-full text-left px-6 py-4">Análisis</button>
         </div>
 
-        <!-- Scrollable Content -->
-        <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8 bg-stone-50 scroll-smooth">
+        <!-- Scrollable Content Area -->
+        <main id="main-container" class="flex-1 overflow-y-auto bg-stone-100 p-4 md:p-8 scroll-smooth relative">
             
-            <!-- SECTION: DASHBOARD (Landing) -->
-            <section id="view-dashboard" class="fade-in space-y-8 max-w-5xl mx-auto">
-                <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200">
-                    <h2 class="text-3xl font-light text-stone-800 mb-2">Bienvenido, Recurso Humano #4092</h2>
-                    <p class="text-stone-500">
-                        Este es el portal de transparencia de Nacho Vegas Corp. Aquí traducimos la retórica empresarial a su verdadera naturaleza emocional. 
-                        Nuestra misión es sobrevivir al viernes gestionando el declive con elegancia.
+            <!-- VIEW: DASHBOARD -->
+            <section id="view-dashboard" class="max-w-6xl mx-auto fade-in">
+                <header class="mb-8">
+                    <h2 class="text-3xl font-light text-stone-800 mb-2">Resumen Ejecutivo</h2>
+                    <p class="text-stone-500 max-w-2xl">
+                        Bienvenido al portal corporativo. A continuación se presentan los KPIs (Key Performance Indicators) relativos a la gestión de la infraestructura emocional y la optimización del fracaso.
                     </p>
+                </header>
+
+                <!-- KPI Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <!-- KPI 1 -->
+                    <div class="bg-white p-6 rounded shadow-sm border border-stone-200 border-l-4 border-l-stone-500">
+                        <div class="text-xs uppercase tracking-widest text-stone-400 mb-1">Días sin Incidentes</div>
+                        <div class="text-4xl font-bold text-stone-800">0</div>
+                        <div class="text-xs text-stone-500 mt-2">Reiniciado diariamente</div>
+                    </div>
+                    <!-- KPI 2 -->
+                    <div class="bg-white p-6 rounded shadow-sm border border-stone-200 border-l-4 border-l-blue-900">
+                        <div class="text-xs uppercase tracking-widest text-stone-400 mb-1">Protocolos Activos</div>
+                        <div class="text-4xl font-bold text-stone-800" id="total-protocols-display">35</div>
+                        <div class="text-xs text-green-600 mt-2">100% Implementados</div>
+                    </div>
+                    <!-- KPI 3 -->
+                    <div class="bg-white p-6 rounded shadow-sm border border-stone-200 border-l-4 border-l-yellow-600">
+                        <div class="text-xs uppercase tracking-widest text-stone-400 mb-1">Nivel de Hábito</div>
+                        <div class="text-4xl font-bold text-stone-800">Alta</div>
+                        <div class="text-xs text-stone-500 mt-2">Riesgo de humedad</div>
+                    </div>
+                    <!-- KPI 4 -->
+                    <div class="bg-white p-6 rounded shadow-sm border border-stone-200 border-l-4 border-l-red-600">
+                        <div class="text-xs uppercase tracking-widest text-stone-400 mb-1">Índice de Silencio</div>
+                        <div class="text-4xl font-bold text-stone-800">98%</div>
+                        <div class="text-xs text-stone-500 mt-2">Gestionado externamente</div>
+                    </div>
                 </div>
 
-                <!-- KPI Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-100 text-center">
-                        <div class="text-4xl font-bold text-stone-800 mb-1" id="kpi-melancholy">87%</div>
-                        <div class="text-xs uppercase tracking-widest text-stone-500">Índice de Melancolía</div>
-                        <div class="text-xs text-red-400 mt-2">↑ 12% vs Q3</div>
+                <!-- Featured Alert -->
+                <div class="bg-stone-200 border border-stone-300 rounded-lg p-6 mb-8 flex flex-col md:flex-row gap-6 items-start">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-stone-800 flex items-center gap-2">
+                            <span class="text-xl">⚠️</span> Aviso de Contingencia Prioritaria
+                        </h3>
+                        <p class="text-stone-600 mt-2 leading-relaxed">
+                            Se recuerda a todo el personal que la <strong>obsolescencia programada de los activos positivos</strong> (anteriormente conocida como "las buenas cosas mueren bajo el sol") está en efecto inmediato. Por favor, ajuste sus expectativas de retorno de inversión emocional a cero.
+                        </p>
                     </div>
-                    <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-100 text-center">
-                        <div class="text-4xl font-bold text-stone-800 mb-1">0</div>
-                        <div class="text-xs uppercase tracking-widest text-stone-500">Días sin Incidentes Emocionales</div>
-                        <div class="text-xs text-stone-400 mt-2">Estable</div>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-100 text-center">
-                        <div class="text-4xl font-bold text-stone-800 mb-1">9</div>
-                        <div class="text-xs uppercase tracking-widest text-stone-500">Eufemismos Activos</div>
-                        <div class="text-xs text-green-600 mt-2">Totalmente Integrados</div>
-                    </div>
-                </div>
-
-                <!-- Featured Insight -->
-                <div class="bg-stone-800 text-stone-100 p-8 rounded-xl shadow-lg">
-                    <h3 class="text-lg font-medium mb-4 border-b border-stone-600 pb-2">💡 Insight del Día</h3>
-                    <blockquote class="italic text-xl font-light opacity-90 mb-4">
-                        "Tengo un ambicioso plan: consiste en sobrevivir."
-                    </blockquote>
-                    <p class="text-sm text-stone-400 text-right">— Nuevos planes, idénticas estrategias</p>
-                    <div class="mt-6">
-                        <button onclick="navigateTo('translator')" class="bg-stone-200 text-stone-900 px-6 py-2 rounded font-medium hover:bg-white transition">
-                            Explorar Diccionario Completo
-                        </button>
-                    </div>
+                    <button onclick="router('procedures')" class="bg-stone-800 text-white px-6 py-2 rounded text-sm hover:bg-stone-700 transition self-start md:self-center shrink-0">
+                        Consultar Procedimientos
+                    </button>
                 </div>
             </section>
 
-            <!-- SECTION: TRANSLATOR (The Dictionary) -->
-            <section id="view-translator" class="hidden fade-in max-w-6xl mx-auto">
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-stone-800">Diccionario Corporativo vs. Realidad</h2>
-                    <p class="text-stone-500 mt-2 max-w-3xl">
-                        A continuación se presenta el desglose oficial de nuestra terminología interna. 
-                        Utilice el interruptor de cada tarjeta para desvelar la capa semántica subyacente (la letra de la canción y la cruda realidad).
-                    </p>
-                </div>
+            <!-- VIEW: PROCEDURES -->
+            <section id="view-procedures" class="hidden max-w-6xl mx-auto fade-in">
+                <header class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h2 class="text-3xl font-light text-stone-800 mb-2">Manual de Protocolos</h2>
+                        <p class="text-stone-500 max-w-xl">
+                            Repositorio oficial de eufemismos. Utilice los filtros para navegar por las distintas eras fiscales (álbumes) y audite el contenido para revelar la fuente original.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <select id="category-filter" onchange="filterProcedures()" class="bg-white border border-stone-300 text-stone-700 text-sm rounded focus:ring-stone-500 focus:border-stone-500 block p-2.5">
+                            <option value="all">Todas las Áreas</option>
+                            <option value="I. Actos Inexplicables">I. Infraestructura (Actos)</option>
+                            <option value="II. Seis canciones / Miedo">II. Operativa (Norte/Miedo)</option>
+                            <option value="III. Cajas de música">III. Metodologías (Cajas)</option>
+                            <option value="IV. El hombre / Desaparezca">IV. Liderazgo (Panero/Desaparezca)</option>
+                            <option value="V. La Zona Sucia">V. Gestión de Crisis (Zona Sucia)</option>
+                        </select>
+                    </div>
+                </header>
 
-                <!-- Filters -->
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <button onclick="filterCards('all')" class="filter-btn active bg-stone-800 text-white px-4 py-1.5 rounded-full text-sm transition">Todos</button>
-                    <button onclick="filterCards('HR')" class="filter-btn bg-stone-200 text-stone-600 px-4 py-1.5 rounded-full text-sm hover:bg-stone-300 transition">Recursos Humanos</button>
-                    <button onclick="filterCards('Strategy')" class="filter-btn bg-stone-200 text-stone-600 px-4 py-1.5 rounded-full text-sm hover:bg-stone-300 transition">Estrategia</button>
-                    <button onclick="filterCards('Operations')" class="filter-btn bg-stone-200 text-stone-600 px-4 py-1.5 rounded-full text-sm hover:bg-stone-300 transition">Operaciones</button>
-                </div>
-
-                <!-- Grid Container -->
-                <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Cards will be injected by JS -->
+                <!-- Grid of Cards -->
+                <div id="procedures-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Javascript will populate this -->
                 </div>
             </section>
 
-            <!-- SECTION: ANALYTICS (Charts) -->
-            <section id="view-analytics" class="hidden fade-in max-w-5xl mx-auto space-y-10">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-stone-800">Métricas de Disociación</h2>
-                    <p class="text-stone-500 mt-2">
-                        Análisis visual de la brecha entre el lenguaje corporativo aséptico y la intensidad emocional real.
+            <!-- VIEW: ANALYTICS -->
+            <section id="view-analytics" class="hidden max-w-6xl mx-auto fade-in">
+                <header class="mb-8">
+                    <h2 class="text-3xl font-light text-stone-800 mb-2">Análisis de Impacto</h2>
+                    <p class="text-stone-500 max-w-3xl">
+                        Visualización de datos agregados sobre la distribución de protocolos de contingencia y la densidad de eufemismos por área funcional.
                     </p>
+                </header>
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    
+                    <!-- Chart 1: Volume by Department -->
+                    <div class="bg-white p-6 rounded shadow-sm border border-stone-200">
+                        <h3 class="text-lg font-bold text-stone-700 mb-4 border-b border-stone-100 pb-2">Volumen de Protocolos por Área Fiscal</h3>
+                        <p class="text-sm text-stone-500 mb-4">Cantidad de directrices emitidas por ciclo operativo.</p>
+                        <div class="chart-wrapper">
+                            <canvas id="volumeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: Type Distribution -->
+                    <div class="bg-white p-6 rounded shadow-sm border border-stone-200">
+                        <h3 class="text-lg font-bold text-stone-700 mb-4 border-b border-stone-100 pb-2">Distribución de Enfoque Estratégico</h3>
+                        <p class="text-sm text-stone-500 mb-4">Desglose de la naturaleza de las intervenciones corporativas.</p>
+                        <div class="chart-wrapper">
+                            <canvas id="typeChart"></canvas>
+                        </div>
+                    </div>
+
                 </div>
 
-                <!-- Chart 1: Radar Chart (Complexity vs Pain) -->
-                <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-stone-200">
-                    <h3 class="text-lg font-bold text-stone-700 mb-4">Radar de Intensidad: Eufemismo vs. Realidad</h3>
-                    <p class="text-sm text-stone-500 mb-6">
-                        Este gráfico compara la "Densidad Corporativa" (complejidad del eufemismo) con la "Carga Lírica" (intensidad emocional de la canción) por categoría.
-                    </p>
-                    <div class="chart-container">
-                        <canvas id="radarChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Chart 2: Bar Chart (Count by Category) -->
-                <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-stone-200">
-                    <h3 class="text-lg font-bold text-stone-700 mb-4">Distribución de Anomalías por Departamento</h3>
-                    <p class="text-sm text-stone-500 mb-6">
-                        Volumen de eufemismos detectados según el área funcional de la empresa.
-                    </p>
-                    <div class="chart-container">
-                        <canvas id="barChart"></canvas>
-                    </div>
+                <!-- Summary Text -->
+                <div class="mt-8 bg-stone-50 p-6 rounded border border-stone-200 text-sm text-stone-600">
+                    <strong class="block mb-2 text-stone-800">Observaciones del Analista:</strong>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Se observa una alta concentración de protocolos en la fase de "Metodologías Ágiles" (Era III), coincidiendo con un aumento en la toxicidad del entorno.</li>
+                        <li>La "Gestión de Crisis" (Era V) muestra una tendencia hacia la externalización de responsabilidades y la aceptación del colapso estructural.</li>
+                        <li>El área de "Liderazgo" (Era IV) presenta los mayores índices de desviación presupuestaria y redefinición de objetivos vitales.</li>
+                    </ul>
                 </div>
             </section>
 
-        </div>
-    </main>
+        </main>
+    </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // --- DATA STORE ---
-        const euphemisms = [
-            {
-                id: 1,
-                category: 'HR',
-                title: 'Gestión de Expectativas',
-                corp: 'Estamos implementando un protocolo de desvinculación emocional para mitigar el impacto de los activos tóxicos.',
-                lyric: 'Hice un plan para que te fueras de mi vida con delicadeza.',
-                song: 'Nuevos planes, idénticas estrategias',
-                context: 'Ruptura amorosa / Despido improcedente',
-                intensity: 8, // Emotional pain
-                complexity: 9 // Corporate jargon density
-            },
-            {
-                id: 2,
-                category: 'HR',
-                title: 'Cultura de Empresa',
-                corp: 'Buscamos perfiles con alta resiliencia capaces de operar en entornos de baja visibilidad y nula gratificación.',
-                lyric: 'Soy un hombre afortunado: me he acostumbrado a no serlo.',
-                song: 'El hombre que casi conoció a Michi Panero',
-                context: 'Aceptación de la miseria laboral',
-                intensity: 9,
-                complexity: 7
-            },
-            {
-                id: 3,
-                category: 'Operations',
-                title: 'Fricción en el Flujo',
-                corp: 'Se ha detectado una incompatibilidad sistémica en los procesos compartidos que imposibilita la escalabilidad.',
-                lyric: 'Lo que no se puede desunir es lo que nos habrá de separar.',
-                song: 'La gran broma final',
-                context: 'Fusión fallida / Socios peleados',
-                intensity: 7,
-                complexity: 9
-            },
-            {
-                id: 4,
-                category: 'Strategy',
-                title: 'Estrategia de Crecimiento',
-                corp: 'Nuestra hoja de ruta actual prioriza la persistencia operativa sobre la optimización de recursos vitales.',
-                lyric: 'Tengo un ambicioso plan: consiste en sobrevivir.',
-                song: 'Nuevos planes, idénticas estrategias',
-                context: 'Burnout / Supervivencia pura',
-                intensity: 6,
-                complexity: 8
-            },
-            {
-                id: 5,
-                category: 'Strategy',
-                title: 'Análisis de Mercado',
-                corp: 'Nuestras métricas confirman que operamos en un nicho de baja diferenciación donde la mediocridad es el estándar.',
-                lyric: 'Como buen occidental, sé nadar igual que un pez... un pez en un mar de mediocridad.',
-                song: 'Nuevos planes, idénticas estrategias',
-                context: 'Competencia irrelevante',
-                intensity: 5,
-                complexity: 7
-            },
-            {
-                id: 6,
-                category: 'Audit',
-                title: 'Auditoría Interna',
-                corp: 'La auditoría ha revelado que la estructura carece de sustento sólido, enfrentándonos a una liquidación inminente.',
-                lyric: 'Se descubre que detrás del escenario no hay nada, que todo el mundo se ríe a tus espaldas.',
-                song: 'La gran broma final',
-                context: 'La empresa es una farsa',
-                intensity: 9,
-                complexity: 8
-            },
-            {
-                id: 7,
-                category: 'Marketing',
-                title: 'Reputación de Marca',
-                corp: 'Estamos gestionando el impacto reputacional derivado de una desconexión total entre valor prometido y ejecución.',
-                lyric: 'Se discute la capitulación mientras se aproximan carcajadas.',
-                song: 'La gran broma final',
-                context: 'Fracaso público',
-                intensity: 8,
-                complexity: 9
-            },
-            {
-                id: 8,
-                category: 'HR',
-                title: 'Salario Emocional',
-                corp: 'La compañía fomentará espacios de socialización lúdica para sostener la moral del equipo.',
-                lyric: 'Nos quedará, menos mal, Martini y sexo...',
-                song: 'Dry Martini, S.A.',
-                context: 'Alcoholismo funcional',
-                intensity: 4,
-                complexity: 6
-            },
-            {
-                id: 9,
-                category: 'Operations',
-                title: 'Integración',
-                corp: 'Estamos ejecutando una estrategia de mimetismo operativo para absorber la cultura del cliente.',
-                lyric: 'Me hago tan pequeño que me deslizo dentro como un pez.',
-                song: 'Dry Martini, S.A.',
-                context: 'Sumisión total',
-                intensity: 7,
-                complexity: 8
-            }
+        // --- DATASET ---
+        const proceduresData = [
+            // I. Actos Inexplicables
+            { id: 101, cat: "I. Actos Inexplicables", sub: "Infraestructura", corp: "Optimizamos el uso de espacios abiertos como zona de pernocta operativa bajo condiciones climáticas adversas.", orig: "Este suelo es mi lecho, y mi techo es el cielo gris..." },
+            { id: 102, cat: "I. Actos Inexplicables", sub: "Mantenimiento", corp: "Detectamos una obsolescencia programada de los activos positivos ante la exposición directa a factores externos.", orig: "Las buenas cosas mueren bajo el sol." },
+            { id: 103, cat: "I. Actos Inexplicables", sub: "Investigación", corp: "Priorizamos el benchmarking histórico; la innovación disruptiva queda descartada por falta de precedentes.", orig: "No hay nada nuevo bajo el sol, no pretendas más que recordar." },
+            { id: 104, cat: "I. Actos Inexplicables", sub: "RRHH", corp: "Ejecutaré una reestructuración de marca personal mediante un cese temporal de actividad para una posterior reincorporación estratégica.", orig: "Probaré a ser otra persona, probaré a morir un poco y volveré." },
+            { id: 105, cat: "I. Actos Inexplicables", sub: "Auditoría", corp: "La auditoría del histórico de datos no arroja resultados aprovechables para el retorno de la inversión (ROI).", orig: "Y miro hacia aquellos días y no consigo rescatar nada..." },
+            { id: 106, cat: "I. Actos Inexplicables", sub: "Seguridad", corp: "Recordatorio de seguridad: la jornada laboral inicia con riesgos latentes integrados en el mobiliario de oficina.", orig: "Y no olvides que al despertar siempre hay cuchillos en el cajón." },
+            { id: 107, cat: "I. Actos Inexplicables", sub: "Bienestar", corp: "El aislamiento del empleado es un riesgo psicosocial que no se mitiga con presupuestos de representación o incentivos químicos.", orig: "La más pura soledad no se cura con champán y cocaína." },
+            { id: 108, cat: "I. Actos Inexplicables", sub: "Clima Laboral", corp: "Existe un riesgo de habituación excesiva a entornos de trabajo degradados y de baja visibilidad.", orig: "Ya no sé si con esta lluvia eterna no me habré acostumbrado a la humedad." },
+
+            // II. Seis canciones / Miedo
+            { id: 201, cat: "II. Seis canciones / Miedo", sub: "Onboarding", corp: "Se omitió el onboarding sobre la dureza de las métricas reales del proyecto.", orig: "Nadie te avisó jamás de lo dura que puede ser la verdad." },
+            { id: 202, cat: "II. Seis canciones / Miedo", sub: "RRHH", corp: "He superado el rango etario para funciones de alta movilidad y he alcanzado un estado de neutralidad afectiva operativa.", orig: "Uno ya no está en edad de volar... ahora no siento nada." },
+            { id: 203, cat: "II. Seis canciones / Miedo", sub: "Presupuesto", corp: "Tras la baja del recurso clave, el departamento ha entrado en una fase de enfriamiento presupuestario permanente.", orig: "Desde que ella se marchó allí siempre es invierno." },
+            { id: 204, cat: "II. Seis canciones / Miedo", sub: "Diseño", corp: "La ausencia de su perfil técnico evidencia un fallo estructural en el diseño del ecosistema global.", orig: "Sin ti está mal hecho el mundo." },
+
+            // III. Cajas de música
+            { id: 301, cat: "III. Cajas de música", sub: "Salud Laboral", corp: "Estamos inmersos en un entorno de trabajo altamente tóxico pero con efectos terapéuticos a largo plazo.", orig: "Nuestros pulmones se anegan en un sueño que envenena y que sana." },
+            { id: 302, cat: "III. Cajas de música", sub: "Gestión de Proyectos", corp: "La finalización del hito es meramente el inicio de una fase de mantenimiento perpetuo.", orig: "Cuando hayas acabado, no habrás hecho más que empezar." },
+            { id: 303, cat: "III. Cajas de música", sub: "Estrategia", corp: "El proyecto vital no se ha ajustado al business plan original debido a desviaciones críticas.", orig: "Esta vida iba a ser otra y algo salió mal." },
+            { id: 304, cat: "III. Cajas de música", sub: "Logística", corp: "Existe una latencia inaceptable en la entrega de suministros y compensaciones prometidas.", orig: "Me canso de esperar la copa que jamás me es servida." },
+            { id: 305, cat: "III. Cajas de música", sub: "Carrera Prof.", corp: "El alcance del proyecto es una variable acumulativa; no se contempla el off-boarding voluntario.", orig: "Nadie llega tan lejos si no es para seguir." },
+            { id: 306, cat: "III. Cajas de música", sub: "Beneficios", corp: "La optimización del bienestar del empleado queda pospuesta para ejercicios fiscales fuera de este ciclo vital.", orig: "Sé que puedo encontrar paz y armonía, pero no será en esta vida." },
+            { id: 307, cat: "III. Cajas de música", sub: "Identidad", corp: "Me encuentro en un estado de inmovilidad operativa con graves conflictos de identidad corporativa.", orig: "Sentado aquí, perdido en mi vida. Sentado aquí y aún huyéndome." },
+            { id: 308, cat: "III. Cajas de música", sub: "Reporting", corp: "El informe de cierre de ciclo proyecta un escenario de aislamiento y feedback negativo crónico.", orig: "Al final sólo hay soledad y amargura." },
+
+            // IV. El hombre / Desaparezca
+            { id: 401, cat: "IV. El hombre / Desaparezca", sub: "Cultura", corp: "Mantenemos una cultura de 'tolerancia al error' masiva y celebramos la resiliencia en el fracaso sistémico.", orig: "Fracasé una vez, fracasé diez mil y aún así alzo mi copa..." },
+            { id: 402, cat: "IV. El hombre / Desaparezca", sub: "Auditoría", corp: "¿Cuál es el objetivo de esta auditoría: mis activos intangibles o mis recursos de liquidez?", orig: "¿Qué queréis de mí, es mi alma o es mi dinero?" },
+            { id: 403, cat: "IV. El hombre / Desaparezca", sub: "Internacional", corp: "Aplico estándares internacionales de navegación corporativa en mercados de baja competitividad.", orig: "Como buen occidental, sé nadar... en un mar de mediocridad." },
+            { id: 404, cat: "IV. El hombre / Desaparezca", sub: "Gerencia", corp: "Solicito autonomía para identificar la existencia misma como la principal desviación del presupuesto.", orig: "Déjame que decida que la vida fue el único error." },
+            { id: 405, cat: "IV. El hombre / Desaparezca", sub: "Estrategia", corp: "La hoja de ruta estratégica se centra exclusivamente en la continuidad de negocio ante el colapso.", orig: "Tracé un ambicioso plan, consistía en sobrevivir." },
+            { id: 406, cat: "IV. El hombre / Desaparezca", sub: "Procesos", corp: "Hemos perdido la trazabilidad de los procesos iniciales en este entorno de trabajo complejo.", orig: "No recuerdo ni por dónde hemos entrado aquí." },
+            { id: 407, cat: "IV. El hombre / Desaparezca", sub: "Reputación", corp: "La confianza en mi perfil profesional ha sufrido una crisis reputacional de nivel catastrófico.", orig: "Ya nadie confía en la energía nuclear después de lo de Chernobyl." },
+
+            // V. La Zona Sucia
+            { id: 501, cat: "V. La Zona Sucia", sub: "Salud", corp: "Externalizamos la gestión del ruido mental mediante soluciones químicas de terceros.", orig: "Ahora el único silencio es el que me procuran ciertas drogas." },
+            { id: 502, cat: "V. La Zona Sucia", sub: "Cliente", corp: "Es comprensible el agotamiento del cliente ante mi propia saturación operativa y falta de auto-mantenimiento.", orig: "¿Cómo no vas a cansarte si... ya estoy harto yo de mí?" },
+            { id: 503, cat: "V. La Zona Sucia", sub: "Riesgos", corp: "Implementamos la Ley de Murphy como principal motor de gestión de crisis inminentes.", orig: "Cuando sabes que algo puede ir mal estallará delante de ti." },
+            { id: 504, cat: "V. La Zona Sucia", sub: "Crecimiento", corp: "Llevamos ocho trimestres consecutivos en una fase de crecimiento negativo y estancamiento.", orig: "Dura dos años ya este invierno." },
+            { id: 505, cat: "V. La Zona Sucia", sub: "Alianzas", corp: "La solidez del acuerdo bilateral era incuestionable, hasta que sufrió un impacto externo de carácter disruptivo y terminal.", orig: "Hay quien decía que era grande y fuerte nuestro amor... igual que las Torres Gemelas..." },
+            { id: 506, cat: "V. La Zona Sucia", sub: "Legal", corp: "La interdependencia excesiva se ha convertido en el principal factor de ruptura contractual.", orig: "Lo que no se puede desunir es lo que nos habrá de separar." },
+            { id: 507, cat: "V. La Zona Sucia", sub: "Gestión Cambio", corp: "Ejecutamos una 'Gatopardización' del flujo de trabajo: cambios cosméticos para mantener el statu quo.", orig: "Todo cambia, pero al tiempo sé que todo sigue igual." },
+            { id: 508, cat: "V. La Zona Sucia", sub: "Tiempo", corp: "Existe una fricción bidireccional entre la gestión del calendario laboral y el desgaste biológico del recurso.", orig: "Yo trato de matar el tiempo, y entre tanto lo que el tiempo intentará es matarme a mí." }
         ];
 
-        // --- NAVIGATION LOGIC ---
-        function navigateTo(viewId) {
-            // Hide all sections
-            document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+        // --- APP STATE ---
+        const state = {
+            currentView: 'dashboard',
+            filter: 'all'
+        };
+
+        // --- CORE NAVIGATION ---
+        function router(viewName) {
+            state.currentView = viewName;
             
-            // Show target section
-            document.getElementById(`view-${viewId}`).classList.remove('hidden');
-
-            // Update Nav visual state
-            document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('bg-white', 'shadow-sm', 'text-stone-800', 'font-medium');
-                el.classList.add('text-stone-600');
+            // Hide all views
+            ['dashboard', 'procedures', 'analytics'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
             });
+            
+            // Show target view
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
 
-            // Highlight active nav
-            const activeNav = document.getElementById(`nav-${viewId}`);
-            if(activeNav) {
-                activeNav.classList.add('bg-white', 'shadow-sm', 'text-stone-800', 'font-medium');
-                activeNav.classList.remove('text-stone-600');
+            // Update Desktop Nav
+            document.querySelectorAll('aside nav button').forEach(btn => {
+                btn.classList.remove('active-nav', 'border-stone-500', 'bg-stone-800', 'text-white');
+                btn.classList.add('border-transparent');
+            });
+            const activeBtn = document.getElementById(`nav-${viewName}`);
+            if(activeBtn) {
+                activeBtn.classList.add('active-nav', 'border-stone-500', 'bg-stone-800', 'text-white');
+                activeBtn.classList.remove('border-transparent');
             }
 
-            // Mobile menu logic
-            document.getElementById('mobile-menu').classList.add('hidden');
+            // Trigger specific view logic
+            if (viewName === 'procedures') {
+                renderProcedures();
+            } else if (viewName === 'analytics') {
+                renderCharts();
+            }
         }
 
-        // --- CARD RENDER LOGIC ---
-        function renderCards(filter = 'all') {
-            const grid = document.getElementById('cards-grid');
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- PROCEDURES LOGIC ---
+        function filterProcedures() {
+            const select = document.getElementById('category-filter');
+            state.filter = select.value;
+            renderProcedures();
+        }
+
+        function renderProcedures() {
+            const grid = document.getElementById('procedures-grid');
             grid.innerHTML = '';
 
-            const filteredData = filter === 'all' 
-                ? euphemisms 
-                : euphemisms.filter(item => item.category === filter);
+            const filteredData = state.filter === 'all' 
+                ? proceduresData 
+                : proceduresData.filter(d => d.cat === state.filter);
+
+            if (filteredData.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center p-8 text-stone-400 italic">No se encontraron protocolos activos en esta categoría.</div>`;
+                return;
+            }
 
             filteredData.forEach(item => {
                 const card = document.createElement('div');
-                card.className = "bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden flex flex-col transition hover:shadow-md";
+                card.className = "bg-transparent h-64 perspective-1000 w-full"; // height fixed for flip effect
                 
-                // Card Inner Structure
-                card.innerHTML = `
-                    <div class="p-6 flex-1 flex flex-col">
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="inline-block px-2 py-1 bg-stone-100 text-stone-500 text-xs font-semibold rounded uppercase tracking-wide">${item.category}</span>
-                            <span class="text-xs text-stone-300">ID: NV-${item.id.toString().padStart(3, '0')}</span>
-                        </div>
-                        
-                        <h3 class="text-lg font-bold text-stone-800 mb-3">${item.title}</h3>
-                        
-                        <!-- Content Area (Swappable) -->
-                        <div class="relative flex-1">
-                            <!-- Corporate View (Default) -->
-                            <div id="content-corp-${item.id}" class="transition-opacity duration-300">
-                                <p class="text-stone-600 italic leading-relaxed">"${item.corp}"</p>
-                            </div>
-                            
-                            <!-- Reality View (Hidden) -->
-                            <div id="content-real-${item.id}" class="hidden absolute top-0 left-0 w-full h-full transition-opacity duration-300">
-                                <p class="text-stone-800 font-serif font-medium text-lg leading-relaxed mb-2">"${item.lyric}"</p>
-                                <div class="mt-4 pt-4 border-t border-stone-100">
-                                    <p class="text-xs text-stone-500">🎵 <span class="font-semibold">${item.song}</span></p>
-                                    <p class="text-xs text-red-500 mt-1">⚠️ Contexto: ${item.context}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                // Using a unique ID for the checkbox toggle to control the flip via CSS/Label
+                const uniqueId = `toggle-${item.id}`;
 
-                    <!-- Footer / Toggle -->
-                    <div class="bg-stone-50 px-6 py-4 border-t border-stone-100 flex justify-between items-center">
-                        <span class="text-xs text-stone-400 font-medium tracking-wider" id="label-${item.id}">MODO: CORPORATIVO</span>
-                        <button onclick="toggleCard(${item.id})" class="relative inline-flex h-6 w-11 items-center rounded-full bg-stone-300 transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 focus:ring-offset-2" id="btn-${item.id}">
-                            <span class="sr-only">Toggle Reality</span>
-                            <span class="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition-transform" id="dot-${item.id}"></span>
-                        </button>
+                card.innerHTML = `
+                    <div class="relative w-full h-full text-left transition-transform duration-700 transform-style-3d group perspective" id="card-inner-${item.id}">
+                        <!-- FRONT: Corporate -->
+                        <div class="absolute w-full h-full bg-white border border-stone-300 rounded p-6 shadow-sm flex flex-col justify-between backface-hidden z-10" id="front-${item.id}">
+                            <div>
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="bg-stone-100 text-stone-600 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">${item.sub}</span>
+                                    <span class="text-xs text-stone-400">REF-${item.id}</span>
+                                </div>
+                                <h3 class="text-stone-800 font-medium leading-relaxed text-sm md:text-base">
+                                    "${item.corp}"
+                                </h3>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-stone-100 flex justify-between items-center">
+                                <span class="text-xs text-stone-400 italic">${item.cat.split('.')[1] || item.cat}</span>
+                                <button onclick="flipCard(${item.id})" class="text-xs bg-stone-800 text-white px-3 py-1.5 rounded hover:bg-stone-700 transition flex items-center gap-1">
+                                    <span>🔍</span> Auditar Realidad
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- BACK: Reality -->
+                        <div class="absolute w-full h-full bg-stone-900 border border-stone-800 rounded p-6 shadow-xl flex flex-col justify-between backface-hidden transform rotate-y-180 hidden" id="back-${item.id}">
+                            <div>
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="bg-red-900 text-red-100 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">Datos Crudos</span>
+                                    <span class="text-xs text-stone-600">ERR_REALITY</span>
+                                </div>
+                                <p class="text-stone-200 font-serif italic text-lg leading-relaxed">
+                                    "${item.orig}"
+                                </p>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-stone-800 flex justify-between items-center">
+                                <button onclick="flipCard(${item.id})" class="text-xs bg-stone-700 text-stone-300 px-3 py-1.5 rounded hover:bg-stone-600 transition">
+                                    ↩ Restaurar Eufemismo
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function toggleCard(id) {
-            const corpContent = document.getElementById(`content-corp-${id}`);
-            const realContent = document.getElementById(`content-real-${id}`);
-            const btn = document.getElementById(`btn-${id}`);
-            const dot = document.getElementById(`dot-${id}`);
-            const label = document.getElementById(`label-${id}`);
+        // Custom JS Flip logic for Tailwind
+        function flipCard(id) {
+            const front = document.getElementById(`front-${id}`);
+            const back = document.getElementById(`back-${id}`);
+            const inner = document.getElementById(`card-inner-${id}`);
             
-            const isShowingReality = realContent.classList.contains('hidden');
-
-            if (isShowingReality) {
-                // Switch to Reality
-                corpContent.classList.add('opacity-0');
-                setTimeout(() => {
-                    corpContent.classList.add('hidden');
-                    corpContent.classList.remove('opacity-0');
-                    realContent.classList.remove('hidden');
-                    // Small animation for text entry
-                    realContent.classList.add('fade-in');
-                }, 150);
-                
-                // UI Toggle Styles
-                btn.classList.remove('bg-stone-300');
-                btn.classList.add('bg-stone-700');
-                dot.classList.remove('translate-x-1');
-                dot.classList.add('translate-x-6');
-                label.innerText = "MODO: REALIDAD";
-                label.classList.add('text-stone-700');
-                
+            // Simple display toggle with animation class
+            if (back.classList.contains('hidden')) {
+                // Show Back
+                front.classList.add('hidden');
+                back.classList.remove('hidden');
+                back.classList.add('fade-in'); // Add fade effect
             } else {
-                // Switch to Corporate
-                realContent.classList.add('hidden');
-                realContent.classList.remove('fade-in');
-                corpContent.classList.remove('hidden');
-                
-                // UI Toggle Styles
-                btn.classList.remove('bg-stone-700');
-                btn.classList.add('bg-stone-300');
-                dot.classList.remove('translate-x-6');
-                dot.classList.add('translate-x-1');
-                label.innerText = "MODO: CORPORATIVO";
-                label.classList.remove('text-stone-700');
+                // Show Front
+                back.classList.add('hidden');
+                front.classList.remove('hidden');
+                front.classList.add('fade-in');
             }
         }
 
-        function filterCards(category) {
-            // Visual feedback on buttons
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                if(btn.innerText.includes(category === 'all' ? 'Todos' : category)) { // Loose matching for label text
-                    btn.classList.add('bg-stone-800', 'text-white');
-                    btn.classList.remove('bg-stone-200', 'text-stone-600');
-                } else {
-                    btn.classList.remove('bg-stone-800', 'text-white');
-                    btn.classList.add('bg-stone-200', 'text-stone-600');
-                }
-                // Handle "HR" label specifically since button text is "Recursos Humanos"
-                if(category === 'HR' && btn.innerText.includes('Recursos')) {
-                    btn.classList.add('bg-stone-800', 'text-white');
-                    btn.classList.remove('bg-stone-200', 'text-stone-600');
-                }
-            });
-            renderCards(category);
-        }
+        // --- ANALYTICS LOGIC ---
+        let volChartInstance = null;
+        let typeChartInstance = null;
 
-        // --- CHARTS LOGIC ---
-        let radarChartInstance = null;
-        let barChartInstance = null;
+        function renderCharts() {
+            // Wait for DOM
+            if (volChartInstance) return; // Already rendered
 
-        function initCharts() {
-            // Prepare Data for Radar Chart (Aggregated by Category)
-            const categories = ['HR', 'Strategy', 'Operations', 'Marketing', 'Audit'];
-            const complexityScores = [0, 0, 0, 0, 0];
-            const intensityScores = [0, 0, 0, 0, 0];
-            const counts = [0, 0, 0, 0, 0];
+            // Prepare Data
+            const countsByCat = {};
+            const countsBySub = {};
 
-            euphemisms.forEach(item => {
-                let idx = categories.indexOf(item.category);
-                if (idx === -1) {
-                    // Normalize unknown cats to Operations for this demo if needed, or skip
-                    // Assuming data is clean.
-                    if(item.category === 'Audit') idx = 4;
-                }
-                if (idx !== -1) {
-                    complexityScores[idx] += item.complexity;
-                    intensityScores[idx] += item.intensity;
-                    counts[idx]++;
-                }
+            proceduresData.forEach(p => {
+                // Main Cat Count
+                countsByCat[p.cat] = (countsByCat[p.cat] || 0) + 1;
+                // Sub Cat Grouping (Simplified)
+                const simpleSub = p.sub; // e.g., "RRHH", "Auditoría"
+                countsBySub[simpleSub] = (countsBySub[simpleSub] || 0) + 1;
             });
 
-            // Average scores
-            for (let i = 0; i < categories.length; i++) {
-                if (counts[i] > 0) {
-                    complexityScores[i] = complexityScores[i] / counts[i];
-                    intensityScores[i] = intensityScores[i] / counts[i];
-                }
-            }
-
-            // Radar Chart
-            const ctxRadar = document.getElementById('radarChart').getContext('2d');
-            radarChartInstance = new Chart(ctxRadar, {
-                type: 'radar',
-                data: {
-                    labels: ['Recursos Humanos', 'Estrategia', 'Operaciones', 'Marketing', 'Auditoría'],
-                    datasets: [{
-                        label: 'Densidad Corporativa (Eufemismo)',
-                        data: complexityScores,
-                        fill: true,
-                        backgroundColor: 'rgba(168, 162, 158, 0.2)', // Stone-400
-                        borderColor: 'rgb(120, 113, 108)', // Stone-500
-                        pointBackgroundColor: 'rgb(120, 113, 108)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgb(120, 113, 108)'
-                    }, {
-                        label: 'Intensidad Emocional (Realidad)',
-                        data: intensityScores,
-                        fill: true,
-                        backgroundColor: 'rgba(239, 68, 68, 0.2)', // Red-500
-                        borderColor: 'rgb(239, 68, 68)', // Red-500
-                        pointBackgroundColor: 'rgb(239, 68, 68)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgb(239, 68, 68)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    elements: {
-                        line: { borderWidth: 3 }
-                    },
-                    scales: {
-                        r: {
-                            angleLines: { color: '#e5e7eb' },
-                            grid: { color: '#e5e7eb' },
-                            pointLabels: {
-                                font: { size: 12, family: 'sans-serif' },
-                                color: '#44403c'
-                            },
-                            suggestedMin: 0,
-                            suggestedMax: 10
-                        }
-                    },
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
-                }
-            });
-
-            // Bar Chart (Volume)
-            const ctxBar = document.getElementById('barChart').getContext('2d');
-            barChartInstance = new Chart(ctxBar, {
+            // Chart 1: Volume
+            const ctxVol = document.getElementById('volumeChart').getContext('2d');
+            volChartInstance = new Chart(ctxVol, {
                 type: 'bar',
                 data: {
-                    labels: ['Recursos Humanos', 'Estrategia', 'Operaciones', 'Marketing', 'Auditoría'],
+                    labels: Object.keys(countsByCat).map(k => k.split('. ')[1]), // Shorten label
                     datasets: [{
-                        label: 'Cantidad de Eufemismos Detectados',
-                        data: counts,
-                        backgroundColor: [
-                            'rgba(214, 211, 209, 0.8)', // Stone-300
-                            'rgba(168, 162, 158, 0.8)', // Stone-400
-                            'rgba(120, 113, 108, 0.8)', // Stone-500
-                            'rgba(87, 83, 78, 0.8)',   // Stone-600
-                            'rgba(41, 37, 36, 0.8)'     // Stone-800
-                        ],
-                        borderColor: 'rgba(0,0,0,0)',
-                        borderWidth: 1
+                        label: 'Nº de Protocolos',
+                        data: Object.values(countsByCat),
+                        backgroundColor: '#57534e', // stone-600
+                        borderRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f5f5f4' }
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
-                    },
                     plugins: {
                         legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#e7e5e4' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Chart 2: Type (Doughnut) - Top 5 Subcategories
+            const sortedSubs = Object.entries(countsBySub).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            
+            const ctxType = document.getElementById('typeChart').getContext('2d');
+            typeChartInstance = new Chart(ctxType, {
+                type: 'doughnut',
+                data: {
+                    labels: sortedSubs.map(s => s[0]),
+                    datasets: [{
+                        data: sortedSubs.map(s => s[1]),
+                        backgroundColor: [
+                            '#292524', // stone-800
+                            '#44403c', // stone-700
+                            '#57534e', // stone-600
+                            '#78716c', // stone-500
+                            '#a8a29e'  // stone-400
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
                     }
                 }
             });
         }
 
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            renderCards();
-            initCharts();
-            
-            // Highlight default Dashboard
-            document.getElementById('nav-dashboard').classList.remove('text-stone-600');
-            document.getElementById('nav-dashboard').classList.add('bg-white', 'shadow-sm', 'text-stone-800', 'font-medium');
-        });
+        // --- INIT ---
+        window.onload = function() {
+            // Default view
+            router('dashboard');
+        };
 
     </script>
 </body>
